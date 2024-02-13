@@ -24,13 +24,22 @@ router.post("/sendmail", async (req, res) => {
     email_request["from"] = req.body["from"]
     email_request["subject"] = req.body["subject"]
     email_request["message"] = req.body["message"]
+    captcha_token = req.body["captcha_token"]
+    captcha_sitekey = req.body["captcha_sitekey"]
 
-    const result = await sendMailMethod(email_request);
+    const result = await sendMailMethod(email_request, captcha_token, captcha_sitekey);
 
-    res.json({
-      status: "success",
-      data: null,
-    });
+    if (result["status"] !== "success") {
+      res.json({
+        status: "fail",
+        message: result["message"],
+      });
+    } else {
+      res.json({
+        status: "success",
+        data: null,
+      });
+    }
   } catch (error) {
     console.error(error.message);
     res.status(500).json({
