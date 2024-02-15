@@ -23,7 +23,7 @@ const sendEmail = async (mailObj, captcha_token, captcha_sitekey) => {
       secret: process.env.MCAPTCHA_SECRET
     };
 
-    const response = await fetch('https://mcaptcha.strapi.schreiber-ling.de/api/v1/pow/siteverify', {
+    const response = await fetch(process.env.MCAPTCHA_URL + 'api/v1/pow/siteverify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
