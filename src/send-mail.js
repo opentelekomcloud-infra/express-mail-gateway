@@ -12,8 +12,43 @@ const path = require("path");
  * @param {String} subject - Subject of the email
  * @param {String} text - Email body
  */
-const sendEmail = async (mailObj) => {
+const sendEmail = async (mailObj, captcha_token, captcha_sitekey) => {
   const { from, to, subject, message } = mailObj;
+
+  // Validate Captcha
+  try {
+    const postData = {
+      token: captcha_token,
+      key: captcha_sitekey,
+      secret: process.env.MCAPTCHA_SECRET
+    };
+
+    const response = await fetch(process.env.MCAPTCHA_URL + 'api/v1/pow/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(postData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Captcha response was not ok');
+    }
+
+    const data = await response.json();
+    if (data["valid"] !== true) {
+      return {
+        status: "fail",
+        message: "Captcha verification failed!"
+      };
+    }
+
+  } catch (error) {
+    console.error(error);
+    throw new Error(
+      `Something went wrong in the captcha verification. Error: ${error.message}`
+    );
+  }
 
   try {
     // Create a transporter
@@ -52,6 +87,10 @@ const sendEmail = async (mailObj) => {
     });
 
     // console.log(`Message sent: ${info.messageId}`);
+    return {
+      status: "success",
+      data: null
+    };
     return `Mail successfully sent with id: ${info.messageId}`;
   } catch (error) {
     console.error(error);
