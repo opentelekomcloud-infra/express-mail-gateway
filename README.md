@@ -4,7 +4,7 @@ This nodejs (Express JS) application will be used as mail gateway to hide sensit
 
 ## Author
 
-This repository was originally forked from :link: [schadokar/nodemailer-app](https://github.com/schadokar/nodemailer-app) and enhanced with a couple of code snippets.
+This repository was originally forked from :link: [schadokar/nodemailer-app](https://github.com/schadokar/nodemailer-app) and enhanced with a couple of code snippets and a [MCaptcha](https://github.com/mCaptcha/mCaptcha) integration.
 
 ## Installation
 
@@ -20,12 +20,14 @@ Install the nodejs dependencies with npm.
 
 Configure the application by using environment variables or a `.env` file with the following parameters.
 
-```
+```Shell
 SMTP_USER=<SMTP_USER>
 SMTP_PASS=<SMTP_PASSWORD>
 SMTP_DOMAIN=<SMTP_DOMAIN>
 SMTP_PORT=<Port to be used e.g. 25>
 MAIL_RECIPIENT=List-of@mail-recipiens.com,
+MCAPTCHA_SECRET=verylongstringoflettersandnumbers
+MCAPTCHA_URL=https://yoururl.tld/
 ```
 
 ## Run the application
@@ -44,16 +46,18 @@ npm run start
 
 ## Sample API Request
 
-```
-POST http://<hostname>:3000/api/v1/sendmail
+`POST http://<hostname>:3000/api/v1/sendmail`
 
-REQUESTBODY
+`REQUESTBODY`
+```json
 {
     "from": "requester@sample.com",
     "subject": "Subject for the mail",
     "message": {
         "test1":"test1Value",
         "test2":"test2Value"
-    }
+    },
+    "captcha_token": "yourretrievedtokenfromMCaptcha",
+    "captcha_sitekey": "yourpublicsitekeyfromMCaptcha",
 }
 ```
