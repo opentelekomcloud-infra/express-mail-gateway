@@ -1,0 +1,29 @@
+# This GitLab CI configuration file includes a kaniko job template and defines variables for the build and push-image stages.
+# The build stage extends the .kaniko_build job template, which builds the Docker image using kaniko.
+# The push-image stage extends the .kaniko_build job template as well, but also pushes the built image to a registry.
+# The variables section defines the KANIKO_JOB_ARGS variable, which specifies build arguments for kaniko,
+# and the DOCKER_IMAGE_NAME variable, which specifies the name of the Docker image to be built and pushed.
+# The push-image stage is only executed for tags.
+include:
+  - project: boilerplate/kaniko
+    file: kaniko-job.gitlab-ci.yml
+
+variables:
+  DOCKER_REGISTRY_IMAGE: "${QUAY_REGISTRY}${CI_PROJECT_NAME}:${CI_COMMIT_TAG}"
+
+build:
+  variables:
+    KANIKO_PUSH: "false"
+    CI_COMMIT_TAG: $CI_COMMIT_SHORT_SHA
+  extends:
+    - .kaniko_build
+
+push-image:
+  variables:
+    KANIKO_PUSH: "true"
+  before_script:
+    - echo "{\"auths\":{\"$QUAY_REGISTRY\":{\"username\":\"$QUAY_REGISTRY_USER\",\"password\":\"$QUAY_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+  extends:
+    - .kaniko_build
+  only:
+    - tags
