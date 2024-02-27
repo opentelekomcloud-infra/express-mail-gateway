@@ -14,4 +14,6 @@ USER node
 
 COPY . .
 
+EXPOSE 25
+
 CMD npm run start
