@@ -10,7 +10,7 @@ COPY package*.json ./
 
 RUN npm ci --omit=dev
 
-USER node
+USER 1001
 
 COPY . .
 
