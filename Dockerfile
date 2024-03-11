@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM registry.access.redhat.com/ubi8/nodejs-20:1-22 as build
+FROM node:20
 
 ENV NODE_ENV production
 
