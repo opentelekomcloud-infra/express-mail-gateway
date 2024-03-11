@@ -13,7 +13,3 @@ RUN npm ci --omit=dev
 USER 1001
 
 COPY . .
-
-EXPOSE 3000
-
-CMD npm run start
