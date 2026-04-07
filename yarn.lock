@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@cap.js/server@^4.0.5":
-  version "4.0.5"
-  resolved "https://registry.yarnpkg.com/@cap.js/server/-/server-4.0.5.tgz#e1766b197cec9852c79f02b2ab3dc9ca8024907d"
-  integrity sha512-S902YIyGyiriNaexfqTzMy5ixxSb3/jYSJwr2gAY9d7XXoYftcifgij/11pjuiU72Ogm6XKZOggDB2DtjRMyww==
-
 accepts@~1.3.8:
   version "1.3.8"
   resolved "https://registry.yarnpkg.com/accepts/-/accepts-1.3.8.tgz#0bf0be125b67014adcb0b0921e62db7bffe16b2e"

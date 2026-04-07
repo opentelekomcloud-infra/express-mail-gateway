@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Use an official Node.js runtime as the base image
-FROM node:20-slim
+FROM node:24-slim
 
 # Set the environment to production
 ENV NODE_ENV=production
@@ -9,12 +9,12 @@ ENV NODE_ENV=production
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy package.json and yarn.lock
+COPY package.json yarn.lock ./
 
-# Install production dependencies
-RUN npm ci --only=production && \
-    npm cache clean --force
+# Install production dependencies with yarn
+RUN yarn install --frozen-lockfile --production && \
+    yarn cache clean
 
 # Create a non-root user and switch to it
 RUN addgroup --system --gid 1001 nodejs && \
