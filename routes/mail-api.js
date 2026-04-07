@@ -25,9 +25,8 @@ router.post("/sendmail", async (req, res) => {
     email_request["subject"] = req.body["subject"]
     email_request["message"] = req.body["message"]
     captcha_token = req.body["captcha_token"]
-    captcha_sitekey = req.body["captcha_sitekey"]
 
-    const result = await sendMailMethod(email_request, captcha_token, captcha_sitekey);
+    const result = await sendMailMethod(email_request, captcha_token);
 
     if (result["status"] !== "success") {
       res.json({

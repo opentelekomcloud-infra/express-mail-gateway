@@ -4,6 +4,47 @@ const { constants } = require("buffer");
 const nodemailer = require("nodemailer");
 const ejs = require('ejs');
 const path = require("path");
+
+/**
+ * Validates CAPTCHA token against the remote CAPTCHA server
+ * @param {string} token - The CAPTCHA token to validate
+ * @returns {Promise<Object>} Validation result with success boolean
+ */
+async function validateCaptchaToken(token) {
+    if (!token) {
+        return { success: false, error: "Missing token" };
+    }
+
+    const captchaUrl = process.env.CAPTCHA_URL;
+    const sitekey = process.env.CAPTCHA_SITEKEY;
+    const secretKey = process.env.CAPTCHA_SECRET_KEY;
+
+    if (!secretKey || !sitekey || !captchaUrl) {
+        console.error("URL or keys not configured in environment variables");
+        return { success: false, error: "Configuration error" };
+    }
+
+    try {
+        const response = await fetch(`${captchaUrl}${sitekey}/siteverify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                secret: secretKey,
+                response: token
+            }),
+            timeout: 5000
+        });
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error("CAPTCHA validation request failed:", error.message);
+        return { success: false, error: "Validation service unavailable" };
+    }
+}
+
 /**
  * sendEmail
  * @param {Object} mailObj - Email information
@@ -12,31 +53,14 @@ const path = require("path");
  * @param {String} subject - Subject of the email
  * @param {String} text - Email body
  */
-const sendEmail = async (mailObj, captcha_token, captcha_sitekey) => {
+const sendEmail = async (mailObj, captcha_token) => {
   const { from, to, subject, message } = mailObj;
 
   // Validate Captcha
   try {
-    const postData = {
-      token: captcha_token,
-      key: captcha_sitekey,
-      secret: process.env.MCAPTCHA_SECRET
-    };
+    const result = await validateCaptchaToken(captcha_token);
 
-    const response = await fetch(process.env.MCAPTCHA_URL + 'api/v1/pow/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(postData)
-    });
-
-    if (!response.ok) {
-      throw new Error('Captcha response was not ok');
-    }
-
-    const data = await response.json();
-    if (data["valid"] !== true) {
+    if (!result.success) {
       return {
         status: "fail",
         message: "Captcha verification failed!"
@@ -69,12 +93,16 @@ const sendEmail = async (mailObj, captcha_token, captcha_sitekey) => {
 
     let templateRendered = ""
 
-    ejs.renderFile(templatePath, templateData, {}, (err, str) => {
-      if (err) {
-        console.error(err);
-      } else {
-        templateRendered = str // Output: Rendered HTML content
-      }
+    await new Promise((resolve, reject) => {
+      ejs.renderFile(templatePath, templateData, {}, (err, str) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+        } else {
+          templateRendered = str
+          resolve(str);
+        }
+      });
     });
 
     // send mail with defined transport object
@@ -86,12 +114,11 @@ const sendEmail = async (mailObj, captcha_token, captcha_sitekey) => {
       html: templateRendered, // html body
     });
 
-    // console.log(`Message sent: ${info.messageId}`);
     return {
       status: "success",
       data: null
     };
-    return `Mail successfully sent with id: ${info.messageId}`;
+
   } catch (error) {
     console.error(error);
     throw new Error(
