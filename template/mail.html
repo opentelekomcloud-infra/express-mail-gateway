@@ -3,9 +3,9 @@
   <% for(let key in requestBody) { %>
     <% if (key === 'message') { %>
       <p><%= key %>: </p>
-      <p><b><%= requestBody[key] %></b></p>
+      <p><b><%- ejs.escape(requestBody[key]) %></b></p>
     <% } else { %>
-      <p><%= key %>: <b><%= requestBody[key] %></b></p>
+      <p><%= key %>: <b><%- ejs.escape(requestBody[key]) %></b></p>
     <% } %>
   <% } %>
 </div>

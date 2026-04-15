@@ -19,6 +19,14 @@ router.post("/sendmail", async (req, res) => {
       return;
     }
 
+    if (!req.body["captcha_token"]) {
+      res.status(400).json({
+        status: "fail",
+        message: "Captcha token is required.",
+      });
+      return;
+    }
+
     let email_request = {}
     email_request["to"] = email_to
     email_request["from"] = req.body["from"]

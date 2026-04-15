@@ -4,6 +4,64 @@ const { constants } = require("buffer");
 const nodemailer = require("nodemailer");
 const ejs = require('ejs');
 const path = require("path");
+const sanitizeHtml = require('sanitize-html');
+
+/**
+ * Sanitizes input to prevent XSS attacks
+ * @param {string} input - Input to sanitize
+ * @returns {string} Sanitized input
+ */
+function sanitizeInput(input) {
+    if (typeof input !== 'string') {
+        if (input === null || input === undefined) {
+            return '';
+        }
+        return String(input);
+    }
+    return sanitizeHtml(input, {
+        allowedTags: [],
+        allowedAttributes: {},
+        disallowedTagsMode: 'discard'
+    });
+}
+
+/**
+ * Validates email format and checks for header injection
+ * @param {string} email - Email address to validate
+ * @returns {boolean} True if valid
+ */
+function validateEmailFormat(email) {
+    if (typeof email !== 'string') return false;
+    if (email.includes('\n') || email.includes('\r')) {
+        return false;
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+}
+
+/**
+ * Validates subject line to prevent header injection
+ * @param {string} subject - Subject to validate
+ * @returns {boolean} True if valid
+ */
+function validateSubject(subject) {
+    if (typeof subject !== 'string') return false;
+    return !subject.includes('\n') && !subject.includes('\r');
+}
+
+/**
+ * Sanitizes message object fields
+ * @param {Object} message - Message object
+ * @returns {Object} Sanitized message object
+ */
+function sanitizeMessage(message) {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(message)) {
+        if (key === 'cap-token') continue;
+        sanitized[key] = sanitizeInput(value);
+    }
+    return sanitized;
+}
 
 /**
  * Validates CAPTCHA token against the remote CAPTCHA server
@@ -56,7 +114,20 @@ async function validateCaptchaToken(token) {
 const sendEmail = async (mailObj, captcha_token) => {
   const { from, to, subject, message } = mailObj;
 
-  // Validate Captcha
+  if (!validateEmailFormat(from)) {
+    return {
+      status: "fail",
+      message: "Invalid email format."
+    };
+  }
+
+  if (!validateSubject(subject)) {
+    return {
+      status: "fail",
+      message: "Invalid subject format."
+    };
+  }
+
   try {
     const result = await validateCaptchaToken(captcha_token);
 
@@ -85,14 +156,13 @@ const sendEmail = async (mailObj, captcha_token) => {
       },
     });
 
-    // Filter out cap-token from message before sending email
-    const emailMessage = { ...message };
-    delete emailMessage['cap-token'];
+    const emailMessage = sanitizeMessage(message);
 
     const templatePath = path.resolve(__dirname, "../template/mail.html")
     let templateData = {
       welcomeMessage: "Hello!",
-      requestBody: emailMessage
+      requestBody: emailMessage,
+      ejs: ejs
     }
 
     let templateRendered = ""
