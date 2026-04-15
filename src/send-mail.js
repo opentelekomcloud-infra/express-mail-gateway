@@ -85,10 +85,14 @@ const sendEmail = async (mailObj, captcha_token) => {
       },
     });
 
+    // Filter out cap-token from message before sending email
+    const emailMessage = { ...message };
+    delete emailMessage['cap-token'];
+
     const templatePath = path.resolve(__dirname, "../template/mail.html")
     let templateData = {
       welcomeMessage: "Hello!",
-      requestBody: message
+      requestBody: emailMessage
     }
 
     let templateRendered = ""
@@ -110,7 +114,7 @@ const sendEmail = async (mailObj, captcha_token) => {
       from: from, // sender address
       to: to, // list of receivers
       subject: subject, // Subject line
-      text: String(message), // plain text body
+      text: String(emailMessage), // plain text body
       html: templateRendered, // html body
     });
 
