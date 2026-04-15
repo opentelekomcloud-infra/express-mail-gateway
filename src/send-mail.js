@@ -161,8 +161,7 @@ const sendEmail = async (mailObj, captcha_token) => {
     const templatePath = path.resolve(__dirname, "../template/mail.html")
     let templateData = {
       welcomeMessage: "Hello!",
-      requestBody: emailMessage,
-      ejs: ejs
+      requestBody: emailMessage
     }
 
     let templateRendered = ""
