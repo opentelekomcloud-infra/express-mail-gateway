@@ -28,6 +28,7 @@ router.post("/sendmail", async (req, res) => {
   try {
     const email_to_raw = process.env.MAIL_RECIPIENT
     const email_to = email_to_raw.split(',');
+    const email_from = process.env.MAIL_FROM || "no-reply@otc-service.com";
 
     // Validate required fields
     if (!req.body["subject"] || !req.body["message"] || !req.body["from"]) {
@@ -60,7 +61,10 @@ router.post("/sendmail", async (req, res) => {
 
     let email_request = {}
     email_request["to"] = email_to
-    email_request["from"] = req.body["from"]
+    // The visible sender is fixed so the API cannot be used to impersonate
+    // an arbitrary address. The requester's address becomes Reply-To.
+    email_request["from"] = email_from
+    email_request["reply_to"] = req.body["from"]
     email_request["subject"] = req.body["subject"]
     email_request["message"] = req.body["message"]
     captcha_token = req.body["captcha_token"]
