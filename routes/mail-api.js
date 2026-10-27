@@ -4,6 +4,25 @@ const sendMailMethod = require("../src/send-mail");
 const querystring = require("querystring");
 require("dotenv").config();
 
+const MAX_FROM_LENGTH = 254;
+const MAX_SUBJECT_LENGTH = 200;
+const MAX_MESSAGE_LENGTH = 10000;
+
+/**
+ * Returns the size of the message payload in characters.
+ * @param {string|Object} message - Message body
+ * @returns {number} Payload length
+ */
+function getMessageLength(message) {
+  if (typeof message === "string") {
+    return message.length;
+  }
+  if (message === null || message === undefined) {
+    return 0;
+  }
+  return JSON.stringify(message).length;
+}
+
 // Post request to send an email
 router.post("/sendmail", async (req, res) => {
   try {
@@ -15,6 +34,18 @@ router.post("/sendmail", async (req, res) => {
       res.status(400).json({
         status: "fail",
         message: "Subject, from and message are required fields.",
+      });
+      return;
+    }
+
+    if (
+      String(req.body["from"]).length > MAX_FROM_LENGTH ||
+      String(req.body["subject"]).length > MAX_SUBJECT_LENGTH ||
+      getMessageLength(req.body["message"]) > MAX_MESSAGE_LENGTH
+    ) {
+      res.status(400).json({
+        status: "fail",
+        message: "From, subject or message exceeds the maximum allowed length.",
       });
       return;
     }

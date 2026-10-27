@@ -92,7 +92,7 @@ async function validateCaptchaToken(token) {
                 secret: secretKey,
                 response: token
             }),
-            timeout: 5000
+            signal: AbortSignal.timeout(5000)
         });
 
         const result = await response.json();
