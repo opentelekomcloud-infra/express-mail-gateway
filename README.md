@@ -4,7 +4,7 @@ This nodejs (Express JS) application will be used as mail gateway to hide sensit
 
 ## Author
 
-This repository was originally forked from :link: [schadokar/nodemailer-app](https://github.com/schadokar/nodemailer-app) and enhanced with a couple of code snippets and a [MCaptcha](https://github.com/mCaptcha/mCaptcha) integration.
+This repository was originally forked from :link: [schadokar/nodemailer-app](https://github.com/schadokar/nodemailer-app) and enhanced with a couple of code snippets and a [Cap](https://capjs.js.org/) CAPTCHA integration.
 
 ## Installation
 
@@ -26,8 +26,11 @@ SMTP_PASS=<SMTP_PASSWORD>
 SMTP_DOMAIN=<SMTP_DOMAIN>
 SMTP_PORT=<Port to be used e.g. 25>
 MAIL_RECIPIENT=List-of@mail-recipiens.com,
-MCAPTCHA_SECRET=verylongstringoflettersandnumbers
-MCAPTCHA_URL=https://yoururl.tld/
+MAIL_FROM=no-reply@otc-service.com
+CAPTCHA_URL=https://cap.example.com/
+CAPTCHA_SITEKEY=your-site-key
+CAPTCHA_SECRET_KEY=sk-you...here
+CORS_ORIGINS=https://partners.otc-service.com
 ```
 
 ## Run the application
@@ -57,7 +60,9 @@ npm run start
         "test1":"test1Value",
         "test2":"test2Value"
     },
-    "captcha_token": "yourretrievedtokenfromMCaptcha",
-    "captcha_sitekey": "yourpublicsitekeyfromMCaptcha",
+    "captcha_token": "yourretrievedtokenfromCap"
 }
 ```
+
+The `from` field is the requester's address and is used as `Reply-To`. The
+visible sender is fixed to `MAIL_FROM` (default `no-reply@otc-service.com`).

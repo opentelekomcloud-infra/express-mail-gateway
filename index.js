@@ -5,8 +5,30 @@ const cors = require("cors");
 const app = express();
 const mailAPI = require("./routes/mail-api.js");
 
+// Restrict browser access to the known frontend origin(s). The value is a
+// comma-separated allowlist; a trailing slash is stripped because the browser
+// Origin header never contains one.
+const allowedOrigins = (process.env.CORS_ORIGINS || "https://partners.otc-service.com")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
 // Express body parser
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // No Origin header means a same-origin or non-browser client (curl,
+      // server-to-server), which CORS does not apply to.
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      callback(null, allowedOrigins.includes(origin.replace(/\/+$/, "")));
+    },
+    methods: ["POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({

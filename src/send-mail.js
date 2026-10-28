@@ -92,7 +92,7 @@ async function validateCaptchaToken(token) {
                 secret: secretKey,
                 response: token
             }),
-            timeout: 5000
+            signal: AbortSignal.timeout(5000)
         });
 
         const result = await response.json();
@@ -112,7 +112,7 @@ async function validateCaptchaToken(token) {
  * @param {String} text - Email body
  */
 const sendEmail = async (mailObj, captcha_token) => {
-  const { from, to, subject, message } = mailObj;
+  const { from, to, subject, message, reply_to } = mailObj;
 
   if (!validateEmailFormat(from)) {
     return {
@@ -125,6 +125,13 @@ const sendEmail = async (mailObj, captcha_token) => {
     return {
       status: "fail",
       message: "Invalid subject format."
+    };
+  }
+
+  if (reply_to && !validateEmailFormat(reply_to)) {
+    return {
+      status: "fail",
+      message: "Invalid reply-to email format."
     };
   }
 
@@ -180,8 +187,9 @@ const sendEmail = async (mailObj, captcha_token) => {
 
     // send mail with defined transport object
     let info = await transporter.sendMail({
-      from: from, // sender address
+      from: from, // fixed sender address
       to: to, // list of receivers
+      replyTo: reply_to, // requester address
       subject: subject, // Subject line
       text: String(emailMessage), // plain text body
       html: templateRendered, // html body
